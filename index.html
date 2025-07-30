@@ -86,6 +86,32 @@
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
   <script>
+    // CORS Proxy with fallback
+    async function fetchWithCorsProxy(url) {
+      const proxies = [
+        'https://cors-anywhere.herokuapp.com/',
+        'https://api.allorigins.win/raw?url=',
+        'https://thingproxy.freeboard.io/fetch/',
+        'https://cors.bridged.cc/'
+      ];
+      
+      for (const proxy of proxies) {
+        try {
+          console.log(`Trying proxy: ${proxy}`);
+          const response = await fetch(proxy + url);
+          if (response.ok) {
+            console.log(`Success with proxy: ${proxy}`);
+            return await response.json();
+          }
+        } catch (error) {
+          console.log(`Failed with proxy ${proxy}:`, error.message);
+          continue;
+        }
+      }
+      
+      throw new Error('All CORS proxies failed');
+    }
+
     // Set default theme to dark
     document.body.classList.add('dark-mode');
     
@@ -149,7 +175,7 @@
         try {
                   // Search for peer info for this EOA address in the leaderboard
         console.log("Searching leaderboard for EOA address");
-        const corsProxy = 'https://api.allorigins.win/raw?url=';
+        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
         const leaderboardUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/leaderboard';
           const res = await fetch(leaderboardUrl);
           if (res.ok) {
@@ -219,7 +245,7 @@
       }
       // Use CORS proxy for local development. Remove for production!
       // Production: No CORS proxy needed
-      const corsProxy = 'https://api.allorigins.win/raw?url=';
+      const corsProxy = 'https://cors-anywhere.herokuapp.com/';
       try {
         // If input looks like a peerId
         if (query.startsWith('Qm')) {
@@ -362,16 +388,9 @@
         leaderboardDiv.innerHTML = 'Loading leaderboard...';
       }
       
-      // Production: No CORS proxy needed
-      const corsProxy = 'https://api.allorigins.win/raw?url=';
-      const url = corsProxy + 'https://dashboard.gensyn.ai/api/v1/leaderboard';
-      console.log('Fetching from:', url);
-      
       try {
-        const res = await fetch(url);
-        console.log('Response status:', res.status);
-        if (!res.ok) throw new Error('Failed to fetch leaderboard');
-        const data = await res.json();
+        console.log('Fetching leaderboard with fallback proxies...');
+        const data = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/leaderboard');
         console.log('Leaderboard data received:', data);
         
         // Cache the new data and set rate limit
@@ -508,7 +527,7 @@
       }
       
       try {
-        const corsProxy = 'https://api.allorigins.win/raw?url=';
+        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
         
         // Fetch nodes connected
         const nodesUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/nodes-connected';
@@ -785,7 +804,7 @@
       }
       
       try {
-        const corsProxy = 'https://api.allorigins.win/raw?url=';
+        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
         const url = corsProxy + 'https://dashboard.gensyn.ai/api/v1/top-rewards';
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch top rewards');
