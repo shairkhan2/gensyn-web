@@ -149,7 +149,7 @@
         try {
                   // Search for peer info for this EOA address in the leaderboard
         console.log("Searching leaderboard for EOA address");
-        const corsProxy = '';
+        const corsProxy = 'https://api.allorigins.win/raw?url=';
         const leaderboardUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/leaderboard';
           const res = await fetch(leaderboardUrl);
           if (res.ok) {
@@ -219,7 +219,7 @@
       }
       // Use CORS proxy for local development. Remove for production!
       // Production: No CORS proxy needed
-      const corsProxy = '';
+      const corsProxy = 'https://api.allorigins.win/raw?url=';
       try {
         // If input looks like a peerId
         if (query.startsWith('Qm')) {
@@ -363,7 +363,7 @@
       }
       
       // Production: No CORS proxy needed
-      const corsProxy = '';
+      const corsProxy = 'https://api.allorigins.win/raw?url=';
       const url = corsProxy + 'https://dashboard.gensyn.ai/api/v1/leaderboard';
       console.log('Fetching from:', url);
       
@@ -508,7 +508,7 @@
       }
       
       try {
-        const corsProxy = '';
+        const corsProxy = 'https://api.allorigins.win/raw?url=';
         
         // Fetch nodes connected
         const nodesUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/nodes-connected';
@@ -785,7 +785,7 @@
       }
       
       try {
-        const corsProxy = '';
+        const corsProxy = 'https://api.allorigins.win/raw?url=';
         const url = corsProxy + 'https://dashboard.gensyn.ai/api/v1/top-rewards';
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch top rewards');
