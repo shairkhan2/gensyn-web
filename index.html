@@ -213,14 +213,12 @@
       // Clear rate limits to force fresh data
       localStorage.removeItem('rateLimit_networkStats');
       localStorage.removeItem('rateLimit_leaderboard');
-      localStorage.removeItem('rateLimit_topRewards');
       
       try {
         // Refresh all data
         await Promise.all([
           fetchNetworkStats(),
-          fetchLeaderboard(),
-          fetchTopRewards()
+          fetchLeaderboard()
         ]);
         
         // Refresh saved peers data
