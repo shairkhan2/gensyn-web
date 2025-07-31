@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gensyn Peer Tracker</title>
+  <title>Gensyn Tracker - Real-time Network Stats</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <header>
-    <h1>Gensyn Peer Tracker</h1>
+    <h1>🏆 Gensyn Tracker</h1>
     <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
   </header>
   <div id="top-rewards-banner">
@@ -32,15 +32,15 @@
     <div id="email-modal" class="email-modal">
       <div class="email-modal-content">
         <div class="email-modal-header">
-          <h3>🔐 Email-Based Peer Storage</h3>
+          <h3>💾 Save Peers as JSON</h3>
           <button class="close-modal" onclick="closeEmailModal()">&times;</button>
         </div>
         <div class="email-modal-body">
-          <p>Enter your email to save/load your peer data across browsers:</p>
+          <p>Save or load your peers:</p>
           <div class="email-input-group">
-            <input type="email" id="user-email" placeholder="your@email.com" class="email-input">
-            <button onclick="savePeersToEmail()" class="email-btn save-btn">💾 Save Peers</button>
-            <button onclick="loadPeersFromEmail()" class="email-btn load-btn">📥 Load Peers</button>
+            <input type="text" id="file-name" placeholder="my-peers" class="email-input">
+            <button onclick="savePeersToFile()" class="email-btn save-btn">💾 Save as JSON</button>
+            <button onclick="loadPeersFromFile()" class="email-btn load-btn">📥 Load JSON</button>
           </div>
           <div id="email-status" class="email-status"></div>
         </div>
@@ -50,7 +50,10 @@
 
   <main>
     <section id="stats">
-      <h2>Network Stats</h2>
+      <div class="stats-header">
+        <h2>🌐 Network Stats</h2>
+        <span class="last-updated" id="stats-last-updated"></span>
+      </div>
       <div id="stats-content">
         <p>Loading stats...</p>
       </div>
@@ -58,36 +61,69 @@
     <section id="saved-peers">
       <div class="saved-peers-header">
         <h2>My Saved Peers</h2>
-        <button onclick="openEmailModal()" class="email-sync-btn-small">
-          📧 Sync
-        </button>
+        <div class="inline-summary" style="position: absolute; left: 50%; transform: translateX(-50%); display: inline-flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 0.5rem; padding: 0.4rem 0.8rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)) !important; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.2) !important; backdrop-filter: blur(10px); z-index: 10; min-width: 100px; flex-wrap: nowrap !important; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important; animation: float 3s ease-in-out infinite; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+          <span class="summary-icon" style="font-size: 1rem !important; color: var(--primary-color) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; margin-right: 0.2rem;">🎁</span>
+          <span class="summary-value" id="total-rewards" style="font-size: 0.9rem !important; font-weight: 700 !important; color: var(--primary-color) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; min-width: 2rem; text-align: center; margin-right: 0.5rem;">0</span>
+          <span class="summary-icon" style="font-size: 1rem !important; color: var(--primary-color) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; margin-right: 0.2rem;">🏆</span>
+          <span class="summary-value" id="total-wins" style="font-size: 0.9rem !important; font-weight: 700 !important; color: var(--primary-color) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important; min-width: 2rem; text-align: center; margin-right: 0.5rem;">0</span>
+        </div>
+        <div class="saved-peers-controls" style="display: flex; flex-direction: row; align-items: center; gap: 0.5rem;">
+          <button id="refresh-btn" class="email-sync-btn-small" aria-label="Refresh data" title="Refresh all data">
+            <span class="refresh-icon">🔄</span>
+            <span class="refresh-text">Refresh</span>
+          </button>
+          <button onclick="openEmailModal()" class="email-sync-btn-small">
+            💾 Saved
+          </button>
+        </div>
       </div>
       <div id="saved-peers-content">
         <p>No saved peers yet. Search for peers to save them!</p>
       </div>
     </section>
     <section id="peer-search">
-      <h2>Search Peer</h2>
+      <h2>🔍 Search Peer</h2>
       <form id="search-form">
-        <input type="text" id="search-input" placeholder="Enter peer name or ID" required>
-        <button type="submit">Search</button>
+        <div class="search-input-group">
+          <input type="text" id="search-input" placeholder="Enter peer name or ID" required>
+          <button type="submit">🔍 Search</button>
+        </div>
+        <div class="search-tips">
+          <small>💡 Tips: Try peer names or peer IDs (Qm...)</small>
+        </div>
       </form>
       <div id="peer-detail" class="peer-detail" style="display:none;"></div>
     </section>
     <section id="leaderboard">
-      <h2>Leaderboard</h2>
+      <div class="leaderboard-header">
+        <h2>🏆 Leaderboard</h2>
+        <span class="last-updated" id="leaderboard-last-updated"></span>
+      </div>
       <div id="leaderboard-content">
         <p>Loading leaderboard...</p>
       </div>
     </section>
   </main>
   <footer>
-    <p>&copy; 2024 Gensyn Peer Tracker</p>
+    <p>&copy; 2024 Gensyn Tracker - Real-time Network Monitoring</p>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
   <script>
     // CORS Proxy with fallback
     async function fetchWithCorsProxy(url) {
+      // First try our own proxy API
+      try {
+        console.log('Trying our own proxy API');
+        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
+        if (response.ok) {
+          console.log('Success with our own proxy API');
+          return await response.json();
+        }
+      } catch (error) {
+        console.log('Failed with our own proxy API:', error.message);
+      }
+      
+      // Fallback to external proxies if our proxy fails
       const proxies = [
         'https://cors-anywhere.herokuapp.com/',
         'https://api.allorigins.win/raw?url=',
@@ -97,19 +133,19 @@
       
       for (const proxy of proxies) {
         try {
-          console.log(`Trying proxy: ${proxy}`);
+          console.log(`Trying external proxy: ${proxy}`);
           const response = await fetch(proxy + url);
           if (response.ok) {
-            console.log(`Success with proxy: ${proxy}`);
+            console.log(`Success with external proxy: ${proxy}`);
             return await response.json();
           }
         } catch (error) {
-          console.log(`Failed with proxy ${proxy}:`, error.message);
+          console.log(`Failed with external proxy ${proxy}:`, error.message);
           continue;
         }
       }
       
-      throw new Error('All CORS proxies failed');
+      throw new Error('All proxies failed');
     }
 
     // Set default theme to dark
@@ -126,6 +162,73 @@
     document.getElementById('close-announcement').onclick = function() {
       document.getElementById('announcement').style.display = 'none';
     };
+
+    // Refresh functionality
+    document.getElementById('refresh-btn').addEventListener('click', async function() {
+      console.log('Manual refresh triggered');
+      
+      const refreshBtn = document.getElementById('refresh-btn');
+      const refreshIcon = refreshBtn.querySelector('.refresh-icon');
+      const refreshText = refreshBtn.querySelector('.refresh-text');
+      
+      // Start loading animation
+      refreshBtn.disabled = true;
+      refreshIcon.textContent = '🔄';
+      refreshText.textContent = 'Loading...';
+      refreshBtn.style.background = 'linear-gradient(135deg, #ff6b6b, #ffa500)';
+      refreshBtn.style.transform = 'scale(0.95)';
+      
+      // Add a small delay to show the animation
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Clear rate limits to force fresh data
+      localStorage.removeItem('rateLimit_networkStats');
+      localStorage.removeItem('rateLimit_leaderboard');
+      localStorage.removeItem('rateLimit_topRewards');
+      
+      try {
+        // Refresh all data
+        await Promise.all([
+          fetchNetworkStats(),
+          fetchLeaderboard(),
+          fetchTopRewards()
+        ]);
+        
+        // Refresh saved peers data
+        await refreshSavedPeers();
+        
+        // Show success state with Gen Z style
+        refreshBtn.style.transform = 'scale(1.05)';
+        refreshIcon.textContent = '🔥';
+        refreshText.textContent = 'Lit!';
+        refreshBtn.style.background = 'linear-gradient(135deg, #00ff88, #00d4aa)';
+        
+        setTimeout(() => {
+          refreshIcon.textContent = '🔄';
+          refreshText.textContent = 'Refresh';
+          refreshBtn.style.background = 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))';
+          refreshBtn.style.transform = 'scale(1)';
+          refreshBtn.disabled = false;
+        }, 1500);
+        
+      } catch (error) {
+        console.error('Refresh failed:', error);
+        
+        // Show error state
+        refreshBtn.style.transform = 'scale(0.95)';
+        refreshIcon.textContent = '💀';
+        refreshText.textContent = 'Oops!';
+        refreshBtn.style.background = 'linear-gradient(135deg, #ff4757, #ff3838)';
+        
+        setTimeout(() => {
+          refreshIcon.textContent = '🔄';
+          refreshText.textContent = 'Refresh';
+          refreshBtn.style.background = 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))';
+          refreshBtn.style.transform = 'scale(1)';
+          refreshBtn.disabled = false;
+        }, 2000);
+      }
+    });
 
     // Peer search functionality
     document.getElementById('search-form').addEventListener('submit', async function(e) {
@@ -175,64 +278,57 @@
         try {
                   // Search for peer info for this EOA address in the leaderboard
         console.log("Searching leaderboard for EOA address");
-        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-        const leaderboardUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/leaderboard';
-          const res = await fetch(leaderboardUrl);
-          if (res.ok) {
-            const data = await res.json();
-            const entries = data.entries || [];
-            const matchingPeer = entries.find(peer => peer.eoa && peer.eoa.toLowerCase() === eoa.toLowerCase());
-            
-            if (matchingPeer) {
-              // Found peer info for this EOA
-              detailDiv.innerHTML = `
-                <div class="peer-card">
-                  <div class="peer-header">
-                    <div class="peer-avatar">${matchingPeer.peerName.charAt(0).toUpperCase()}</div>
-                    <div class="peer-info">
-                      <h3 class="peer-name">${matchingPeer.peerName}</h3>
-                      <span class="peer-status ${matchingPeer.online ? 'online' : 'offline'}">${matchingPeer.online ? '🟢 Online' : '🔴 Offline'}</span>
-                    </div>
-                  </div>
-                  <div class="peer-stats">
-                    <div class="stat-item-cool">
-                      <span class="stat-icon">🏆</span>
-                      <span class="stat-label-cool">Reward</span>
-                      <span class="stat-value-cool">${matchingPeer.reward.toLocaleString()}</span>
-                    </div>
-                    <div class="stat-item-cool">
-                      <span class="stat-icon">📊</span>
-                      <span class="stat-label-cool">Score</span>
-                      <span class="stat-value-cool">${matchingPeer.score.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <div class="peer-details">
-                    <div class="detail-item">
-                      <span class="detail-label">Peer ID</span>
-                      <span class="detail-value">${matchingPeer.peerId}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="detail-label">EOA Address</span>
-                      <span class="detail-value">${eoa}</span>
-                    </div>
-                  </div>
-                  <div class="peer-footer">
-                    <span class="success-badge">✓ Found via leaderboard search</span>
-                  </div>
+        const data = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/leaderboard');
+        const entries = data.entries || [];
+        const matchingPeer = entries.find(peer => peer.eoa && peer.eoa.toLowerCase() === eoa.toLowerCase());
+        
+        if (matchingPeer) {
+          // Found peer info for this EOA
+          detailDiv.innerHTML = `
+            <div class="peer-card">
+              <div class="peer-header">
+                <div class="peer-avatar">${matchingPeer.peerName.charAt(0).toUpperCase()}</div>
+                <div class="peer-info">
+                  <h3 class="peer-name">${matchingPeer.peerName}</h3>
+                  <span class="peer-status ${matchingPeer.online ? 'online' : 'offline'}">${matchingPeer.online ? '🟢 Online' : '🔴 Offline'}</span>
                 </div>
-              `;
-            } else {
-              detailDiv.innerHTML = `
-                <div class="peer-card">
-                  <strong>EOA Address:</strong> ${eoa}<br>
-                  <span style='color:orange'>⚠ No peer information found for this EOA address</span><br>
-                  <span style='color:gray'>This EOA address is not associated with any peer in the current data.</span>
+              </div>
+              <div class="peer-stats">
+                <div class="stat-item-cool">
+                  <span class="stat-icon">🏆</span>
+                  <span class="stat-label-cool">Reward</span>
+                  <span class="stat-value-cool">${matchingPeer.reward.toLocaleString()}</span>
                 </div>
-              `;
-            }
-          } else {
-            throw new Error('Failed to fetch leaderboard data');
-          }
+                <div class="stat-item-cool">
+                  <span class="stat-icon">📊</span>
+                  <span class="stat-label-cool">Score</span>
+                  <span class="stat-value-cool">${matchingPeer.score.toLocaleString()}</span>
+                </div>
+              </div>
+              <div class="peer-details">
+                <div class="detail-item">
+                  <span class="detail-label">Peer ID</span>
+                  <span class="detail-value">${matchingPeer.peerId}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">EOA Address</span>
+                  <span class="detail-value">${eoa}</span>
+                </div>
+              </div>
+              <div class="peer-footer">
+                <span class="success-badge">✓ Found via leaderboard search</span>
+              </div>
+            </div>
+          `;
+        } else {
+          detailDiv.innerHTML = `
+            <div class="peer-card">
+              <strong>EOA Address:</strong> ${eoa}<br>
+              <span style='color:orange'>⚠ No peer information found for this EOA address</span><br>
+              <span style='color:gray'>This EOA address is not associated with any peer in the current data.</span>
+            </div>
+          `;
+        }
         } catch (err) {
           detailDiv.innerHTML = `
             <div class="peer-card">
@@ -243,24 +339,15 @@
         }
         return;
       }
-      // Use CORS proxy for local development. Remove for production!
-      // Production: No CORS proxy needed
-      const corsProxy = 'https://cors-anywhere.herokuapp.com/';
       try {
         // If input looks like a peerId
         if (query.startsWith('Qm')) {
           // Fetch peer info from dashboard API
-          let url = corsProxy + `https://dashboard.gensyn.ai/api/v1/peer?id=${encodeURIComponent(query)}`;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('Peer not found');
-          peerData = await res.json();
+          peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${encodeURIComponent(query)}`);
           peerId = peerData.peerId;
         } else {
           // Assume it's a peer name, fetch info
-          let url = corsProxy + `https://dashboard.gensyn.ai/api/v1/peer?name=${encodeURIComponent(query)}`;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('Peer not found');
-          peerData = await res.json();
+          peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?name=${encodeURIComponent(query)}`);
           peerId = peerData.peerId;
         }
         // Now fetch EOA from contract
@@ -270,16 +357,12 @@
         if (!eoa || eoa === '0x0000000000000000000000000000000000000000') {
           console.log('Contract call failed or returned zero address, trying leaderboard search...');
           try {
-            const leaderboardUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/leaderboard';
-            const leaderboardRes = await fetch(leaderboardUrl);
-            if (leaderboardRes.ok) {
-              const leaderboardData = await leaderboardRes.json();
-              const entries = leaderboardData.entries || [];
-              const matchingPeer = entries.find(peer => peer.peerId === peerId);
-              if (matchingPeer && matchingPeer.eoa) {
-                eoa = matchingPeer.eoa;
-                console.log('Found EOA in leaderboard:', eoa);
-              }
+            const leaderboardData = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/leaderboard');
+            const entries = leaderboardData.entries || [];
+            const matchingPeer = entries.find(peer => peer.peerId === peerId);
+            if (matchingPeer && matchingPeer.eoa) {
+              eoa = matchingPeer.eoa;
+              console.log('Found EOA in leaderboard:', eoa);
             }
           } catch (err) {
             console.error('Error searching leaderboard for EOA:', err);
@@ -396,6 +479,10 @@
         // Cache the new data and set rate limit
         setCachedData('leaderboard', data);
         setRateLimit('leaderboard');
+        
+        // Update last updated time
+        const now = new Date();
+        document.getElementById('leaderboard-last-updated').textContent = `Last updated: ${now.toLocaleTimeString()}`;
         
         displayLeaderboard(data);
       } catch (err) {
@@ -527,38 +614,36 @@
       }
       
       try {
-        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-        
         // Fetch nodes connected
-        const nodesUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/nodes-connected';
-        const nodesRes = await fetch(nodesUrl);
-        if (!nodesRes.ok) throw new Error('Failed to fetch network stats');
-        const nodesData = await nodesRes.json();
+        const nodesData = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/nodes-connected');
         const value = nodesData.connected !== undefined ? nodesData.connected : nodesData.count;
         
         // Fetch round data
-        const roundUrl = corsProxy + 'https://dashboard.gensyn.ai/api/v1/round-stage';
-        const roundRes = await fetch(roundUrl);
-        if (!roundRes.ok) throw new Error('Failed to fetch round data');
-        const roundData = await roundRes.json();
+        const roundData = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/round-stage');
         
         // Cache both data sets
         setCachedData('networkStats', nodesData);
         setCachedData('roundData', roundData);
         setRateLimit('networkStats');
         
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        
         statsDiv.innerHTML = `
           <div class="stats-card">
             <div class="stat-item">
-              <span class="stat-label">Nodes Connected</span>
+              <span class="stat-label">🟢 Nodes Connected</span>
               <span class="stat-value">${value ? value.toLocaleString() : '?'}</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">Current Round</span>
+              <span class="stat-label">🏆 Current Round</span>
               <span class="stat-value">${roundData.round}</span>
             </div>
           </div>
         `;
+        
+        // Update last updated time
+        document.getElementById('stats-last-updated').textContent = `Last updated: ${timeString}`;
       } catch (err) {
         if (!cachedData) {
           statsDiv.innerHTML = '<span style="color:red">Error loading network stats.</span>';
@@ -619,6 +704,14 @@
         return;
       }
       
+      // Calculate summary stats
+      const totalRewards = Object.values(savedPeers).reduce((sum, peer) => sum + peer.reward, 0);
+      const totalWins = Object.values(savedPeers).reduce((sum, peer) => sum + peer.score, 0);
+      
+      // Update header summary
+      document.getElementById('total-rewards').textContent = totalRewards.toLocaleString();
+      document.getElementById('total-wins').textContent = totalWins.toLocaleString();
+      
       const peerCount = Object.keys(savedPeers).length;
       let html = `<div class="saved-peers-grid" data-peer-count="${peerCount}">`;
       
@@ -639,14 +732,14 @@
             </div>
             <div class="saved-peer-stats">
               <div class="saved-stat-item">
-                <span class="saved-stat-icon">🏆</span>
+                <span class="saved-stat-icon">🎁</span>
                 <span class="saved-stat-label">Reward</span>
                 <span class="saved-stat-value">${peer.reward.toLocaleString()}</span>
                 ${rewardChange !== 0 ? `<span class="change-indicator ${rewardChange > 0 ? 'positive' : 'negative'}">${rewardChange > 0 ? '+' : ''}${rewardChange}</span>` : ''}
               </div>
               <div class="saved-stat-item">
-                <span class="saved-stat-icon">📊</span>
-                <span class="saved-stat-label">Score</span>
+                <span class="saved-stat-icon">🏆</span>
+                <span class="saved-stat-label">Wins</span>
                 <span class="saved-stat-value">${peer.score.toLocaleString()}</span>
                 ${scoreChange !== 0 ? `<span class="change-indicator ${scoreChange > 0 ? 'positive' : 'negative'}">${scoreChange > 0 ? '+' : ''}${scoreChange}</span>` : ''}
               </div>
@@ -672,6 +765,89 @@
     // Make removeSavedPeer globally accessible
     window.removeSavedPeer = removeSavedPeer;
     
+    // Function to refresh saved peers data
+    async function refreshSavedPeers() {
+      const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+      const updatedPeers = {};
+      let totalRewardChange = 0;
+      let totalWinChange = 0;
+      
+      for (const [peerId, peer] of Object.entries(savedPeers)) {
+        try {
+          // Fetch latest peer data
+          const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
+          
+          if (peerData && peerData.peer) {
+            const newReward = peerData.peer.reward || 0;
+            const newScore = peerData.peer.score || 0;
+            
+            // Calculate changes
+            const rewardChange = newReward - peer.reward;
+            const scoreChange = newScore - peer.score;
+            
+            // Update peer data
+            updatedPeers[peerId] = {
+              ...peer,
+              reward: newReward,
+              score: newScore,
+              lastUpdated: Date.now(),
+              changes: {
+                reward: rewardChange,
+                score: scoreChange
+              }
+            };
+            
+            // Add to total changes
+            totalRewardChange += rewardChange;
+            totalWinChange += scoreChange;
+            
+            console.log(`Peer ${peer.peerName}: Reward ${peer.reward} → ${newReward} (${rewardChange > 0 ? '+' : ''}${rewardChange}), Score ${peer.score} → ${newScore} (${scoreChange > 0 ? '+' : ''}${scoreChange})`);
+          }
+        } catch (error) {
+          console.error(`Failed to refresh peer ${peer.peerName}:`, error);
+          // Keep existing data if refresh fails
+          updatedPeers[peerId] = peer;
+        }
+      }
+      
+      // Save updated peers
+      localStorage.setItem(savedPeersKey, JSON.stringify(updatedPeers));
+      
+      // Update display
+      displaySavedPeers();
+      
+      // Show total changes in summary if any
+      if (totalRewardChange !== 0 || totalWinChange !== 0) {
+        showTotalChanges(totalRewardChange, totalWinChange);
+      }
+      
+      return { totalRewardChange, totalWinChange };
+    }
+    
+    // Function to show total changes with animation
+    function showTotalChanges(rewardChange, winChange) {
+      const rewardsElement = document.getElementById('total-rewards');
+      const winsElement = document.getElementById('total-wins');
+      
+      if (rewardChange > 0) {
+        rewardsElement.style.animation = 'pulse 0.5s ease-in-out';
+        rewardsElement.style.color = '#00ff88';
+        setTimeout(() => {
+          rewardsElement.style.color = 'var(--primary-color)';
+          rewardsElement.style.animation = '';
+        }, 1000);
+      }
+      
+      if (winChange > 0) {
+        winsElement.style.animation = 'pulse 0.5s ease-in-out';
+        winsElement.style.color = '#00ff88';
+        setTimeout(() => {
+          winsElement.style.color = 'var(--primary-color)';
+          winsElement.style.animation = '';
+        }, 1000);
+      }
+    }
+    
     // Function to show saved peer details
     function showSavedPeerDetails(peerId) {
       const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
@@ -694,13 +870,13 @@
           </div>
           <div class="peer-stats">
             <div class="stat-item-cool">
-              <span class="stat-icon">🏆</span>
+              <span class="stat-icon">🎁</span>
               <span class="stat-label-cool">Reward</span>
               <span class="stat-value-cool">${peer.reward.toLocaleString()}</span>
             </div>
             <div class="stat-item-cool">
-              <span class="stat-icon">📊</span>
-              <span class="stat-label-cool">Score</span>
+              <span class="stat-icon">🏆</span>
+              <span class="stat-label-cool">Wins</span>
               <span class="stat-value-cool">${peer.score.toLocaleString()}</span>
             </div>
           </div>
@@ -804,11 +980,7 @@
       }
       
       try {
-        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-        const url = corsProxy + 'https://dashboard.gensyn.ai/api/v1/top-rewards';
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed to fetch top rewards');
-        const data = await res.json();
+        const data = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/top-rewards');
         
         // Cache the new data and set rate limit
         setCachedData('topRewards', data);
@@ -851,13 +1023,21 @@
       document.getElementById('email-modal').style.display = 'none';
     }
 
-    function savePeersToEmail() {
-      const email = document.getElementById('user-email').value;
-      if (!email) {
-        document.getElementById('email-status').textContent = 'Please enter an email address.';
+    function savePeersToFile() {
+      const fileName = document.getElementById('file-name').value.trim();
+      if (!fileName) {
+        document.getElementById('email-status').textContent = 'Please enter a file name.';
+        document.getElementById('email-status').style.color = 'red';
         return;
       }
+      
       const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+      if (Object.keys(savedPeers).length === 0) {
+        document.getElementById('email-status').textContent = 'No peers to save!';
+        document.getElementById('email-status').style.color = 'orange';
+        return;
+      }
+      
       const peersToSave = Object.values(savedPeers).map(peer => ({
         peerId: peer.peerId,
         peerName: peer.peerName,
@@ -870,28 +1050,29 @@
 
       try {
         const data = {
-          email: email,
-          peers: peersToSave
+          savedPeers: peersToSave,
+          savedAt: new Date().toISOString(),
+          totalPeers: peersToSave.length
         };
-        const jsonData = JSON.stringify(data);
+        const jsonData = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${email}_gensyn_peers.json`;
+        a.download = `${fileName}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        document.getElementById('email-status').textContent = 'Peers saved to email successfully!';
+        document.getElementById('email-status').textContent = `✅ Saved ${peersToSave.length} peers as ${fileName}.json`;
         document.getElementById('email-status').style.color = 'green';
       } catch (err) {
-        document.getElementById('email-status').textContent = `Error saving peers to email: ${err.message}`;
+        document.getElementById('email-status').textContent = `❌ Error saving file: ${err.message}`;
         document.getElementById('email-status').style.color = 'red';
       }
     }
 
-    function loadPeersFromEmail() {
+    function loadPeersFromFile() {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'application/json';
@@ -902,53 +1083,74 @@
         try {
           const text = await file.text();
           const loadedData = JSON.parse(text);
-          if (loadedData.email && loadedData.peers) {
-            const email = loadedData.email;
-            const peers = loadedData.peers;
-            const existingPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
-
-            for (const peer of peers) {
-              if (existingPeers[peer.peerId]) {
-                // Update existing peer
-                const oldData = existingPeers[peer.peerId];
-                const rewardChange = peer.reward - oldData.reward;
-                const scoreChange = peer.score - oldData.score;
-                existingPeers[peer.peerId] = {
-                  ...peer,
-                  lastUpdated: new Date().toISOString(),
-                  previousData: {
-                    reward: oldData.reward,
-                    score: oldData.score,
-                    lastUpdated: oldData.lastUpdated
-                  },
-                  changes: {
-                    reward: rewardChange,
-                    score: scoreChange
-                  }
-                };
-              } else {
-                // New peer
-                existingPeers[peer.peerId] = {
-                  ...peer,
-                  lastUpdated: new Date().toISOString(),
-                  previousData: null,
-                  changes: {
-                    reward: 0,
-                    score: 0
-                  }
-                };
-              }
-            }
-            localStorage.setItem(savedPeersKey, JSON.stringify(existingPeers));
-            displaySavedPeers();
-            document.getElementById('email-status').textContent = `Peers loaded from ${email} successfully!`;
-            document.getElementById('email-status').style.color = 'green';
+          
+          // Handle both old format (email/peers) and new format (savedPeers)
+          let peers = [];
+          if (loadedData.savedPeers) {
+            peers = loadedData.savedPeers;
+          } else if (loadedData.peers) {
+            peers = loadedData.peers;
           } else {
-            document.getElementById('email-status').textContent = 'Invalid file format or missing data.';
-            document.getElementById('email-status').style.color = 'red';
+            throw new Error('Invalid file format');
           }
+
+          const existingPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+          let addedCount = 0;
+          let updatedCount = 0;
+
+          for (const peer of peers) {
+            if (existingPeers[peer.peerId]) {
+              // Update existing peer
+              const oldData = existingPeers[peer.peerId];
+              const rewardChange = peer.reward - oldData.reward;
+              const scoreChange = peer.score - oldData.score;
+              existingPeers[peer.peerId] = {
+                ...peer,
+                lastUpdated: new Date().toISOString(),
+                previousData: {
+                  reward: oldData.reward,
+                  score: oldData.score,
+                  lastUpdated: oldData.lastUpdated
+                },
+                changes: {
+                  reward: rewardChange,
+                  score: scoreChange
+                }
+              };
+              updatedCount++;
+            } else {
+              // New peer
+              existingPeers[peer.peerId] = {
+                ...peer,
+                lastUpdated: new Date().toISOString(),
+                previousData: null,
+                changes: {
+                  reward: 0,
+                  score: 0
+                }
+              };
+              addedCount++;
+            }
+          }
+          
+          localStorage.setItem(savedPeersKey, JSON.stringify(existingPeers));
+          displaySavedPeers();
+          
+          let message = '';
+          if (addedCount > 0 && updatedCount > 0) {
+            message = `✅ Added ${addedCount} new peers and updated ${updatedCount} existing peers`;
+          } else if (addedCount > 0) {
+            message = `✅ Added ${addedCount} new peers`;
+          } else if (updatedCount > 0) {
+            message = `✅ Updated ${updatedCount} existing peers`;
+          } else {
+            message = '✅ File loaded but no changes made';
+          }
+          
+          document.getElementById('email-status').textContent = message;
+          document.getElementById('email-status').style.color = 'green';
         } catch (err) {
-          document.getElementById('email-status').textContent = `Error loading peers from email: ${err.message}`;
+          document.getElementById('email-status').textContent = `❌ Error loading file: ${err.message}`;
           document.getElementById('email-status').style.color = 'red';
         }
       };
