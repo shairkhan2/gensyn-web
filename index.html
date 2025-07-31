@@ -135,6 +135,8 @@
                   console.log('Response data keys:', data ? Object.keys(data) : 'null/undefined');
                   console.log('Raw response text:', JSON.stringify(data));
                   console.log('=== PROXY DEBUG END ===');
+                  console.log('SIMPLE TEST: data.peerId =', data && data.peerId);
+                  console.log('SIMPLE TEST: data.reward =', data && data.reward);
                   return data;
           } catch (jsonError) {
             console.error('Failed to parse JSON from proxy:', jsonError);
