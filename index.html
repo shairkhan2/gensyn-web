@@ -1052,6 +1052,14 @@
             }
           }
           
+          // CRITICAL DEBUG - This will definitely show up
+          console.log('=== VALIDATION DEBUG ===');
+          console.log('peerData:', peerData);
+          console.log('peerData type:', typeof peerData);
+          console.log('peerData.peerId:', peerData && peerData.peerId);
+          console.log('Validation result:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
+          console.log('=== END VALIDATION DEBUG ===');
+          
           if (peerData && peerData.peerId) {
             const newReward = peerData.reward || 0;
             const newScore = peerData.score || 0;
