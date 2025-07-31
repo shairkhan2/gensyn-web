@@ -905,32 +905,37 @@ h2 {
 
 .change-indicator {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  top: -10px;
+  right: -10px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 15px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 900;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
   animation: bounce 0.6s ease-in-out;
   z-index: 10;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(15px);
+  min-width: 2rem;
+  text-align: center;
+  letter-spacing: 0.5px;
 }
 
 .change-indicator.positive {
   color: #00ff88;
-  background: linear-gradient(135deg, rgba(0, 255, 136, 0.9), rgba(0, 212, 170, 0.9));
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.85), rgba(0, 212, 170, 0.85));
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5), 0 0 20px rgba(0, 255, 136, 0.3);
+  border: 2px solid rgba(0, 255, 136, 0.6);
 }
 
 .change-indicator.negative {
   color: #ff4757;
-  background: linear-gradient(135deg, rgba(255, 71, 87, 0.9), rgba(255, 107, 107, 0.9));
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.85), rgba(255, 107, 107, 0.85));
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.5), 0 0 20px rgba(255, 71, 87, 0.3);
+  border: 2px solid rgba(255, 71, 87, 0.6);
 }
 
 .saved-peer-footer {
