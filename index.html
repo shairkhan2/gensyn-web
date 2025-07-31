@@ -803,13 +803,13 @@
                 <span class="saved-stat-icon">🎁</span>
                 <span class="saved-stat-label">Reward</span>
                 <span class="saved-stat-value">${peer.reward.toLocaleString()}</span>
-                ${rewardChange !== 0 ? `<span class="change-indicator ${rewardChange > 0 ? 'positive' : 'negative'}">${rewardChange > 0 ? '+' : ''}${rewardChange}</span>` : ''}
+                ${rewardChange !== 0 ? `<span class="change-indicator ${rewardChange > 0 ? 'positive' : 'negative'}">${rewardChange}</span>` : ''}
               </div>
               <div class="saved-stat-item">
                 <span class="saved-stat-icon">🏆</span>
                 <span class="saved-stat-label">Wins</span>
                 <span class="saved-stat-value">${peer.score.toLocaleString()}</span>
-                ${scoreChange !== 0 ? `<span class="change-indicator ${scoreChange > 0 ? 'positive' : 'negative'}">${scoreChange > 0 ? '+' : ''}${scoreChange}</span>` : ''}
+                ${scoreChange !== 0 ? `<span class="change-indicator ${scoreChange > 0 ? 'positive' : 'negative'}">${scoreChange}</span>` : ''}
               </div>
             </div>
             <div class="saved-peer-footer">
