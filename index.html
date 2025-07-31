@@ -1003,7 +1003,11 @@
           console.log(`Refreshing peer: ${peer.peerName} (${peerId})`);
           
           // Fetch latest peer data
-          const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
+          const url = `https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`;
+          console.log('=== URL DEBUG ===');
+          console.log('Calling URL:', url);
+          console.log('Peer ID:', peerId);
+          const peerData = await fetchWithCorsProxy(url);
           
           console.log('=== PEER DATA DEBUG ===');
           console.log('Peer data received:', peerData);
@@ -1059,6 +1063,13 @@
           console.log('peerData.peerId:', peerData && peerData.peerId);
           console.log('Validation result:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
           console.log('=== END VALIDATION DEBUG ===');
+          
+          // ALERT TEST - This will definitely show up
+          if (peerData && peerData.peerId) {
+            alert('VALIDATION SUCCESS: peerData.peerId = ' + peerData.peerId);
+          } else {
+            alert('VALIDATION FAILED: peerData = ' + JSON.stringify(peerData));
+          }
           
           if (peerData && peerData.peerId) {
             const newReward = peerData.reward || 0;
