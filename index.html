@@ -111,13 +111,27 @@
   <script>
     // CORS Proxy with fallback
     async function fetchWithCorsProxy(url) {
+      console.log('Fetching URL:', url);
+      
       // First try our own proxy API
       try {
         console.log('Trying our own proxy API');
-        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        console.log('Proxy response status:', response.status);
+        
         if (response.ok) {
+          const data = await response.json();
           console.log('Success with our own proxy API');
-          return await response.json();
+          return data;
+        } else {
+          console.log('Proxy response not ok:', response.status, response.statusText);
         }
       } catch (error) {
         console.log('Failed with our own proxy API:', error.message);
@@ -125,19 +139,33 @@
       
       // Fallback to external proxies if our proxy fails
       const proxies = [
-        'https://cors-anywhere.herokuapp.com/',
+        'https://cors.bridged.cc/',
         'https://api.allorigins.win/raw?url=',
-        'https://thingproxy.freeboard.io/fetch/',
-        'https://cors.bridged.cc/'
+        'https://thingproxy.freeboard.io/fetch/'
       ];
       
       for (const proxy of proxies) {
         try {
           console.log(`Trying external proxy: ${proxy}`);
-          const response = await fetch(proxy + url);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+          
+          const response = await fetch(proxy + url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          console.log(`External proxy response status:`, response.status);
+          
           if (response.ok) {
+            const data = await response.json();
             console.log(`Success with external proxy: ${proxy}`);
-            return await response.json();
+            return data;
+          } else {
+            console.log(`External proxy failed with status:`, response.status);
           }
         } catch (error) {
           console.log(`Failed with external proxy ${proxy}:`, error.message);
