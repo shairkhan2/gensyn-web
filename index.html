@@ -140,9 +140,9 @@
                   
                   // Force an alert to see the data
                   if (data && data.peerId) {
-                    console.log('ALERT: Data has peerId!', data.peerId);
+                    alert('SUCCESS: Data has peerId! ' + data.peerId);
                   } else {
-                    console.log('ALERT: Data is missing peerId!', data);
+                    alert('ERROR: Data is missing peerId! ' + JSON.stringify(data));
                   }
                   
                   return data;
