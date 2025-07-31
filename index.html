@@ -921,6 +921,11 @@
         showTotalChanges(totalRewardChange, totalWinChange);
       }
       
+      // Clear changes after 5 seconds
+      setTimeout(() => {
+        clearPeerChanges();
+      }, 5000);
+      
       return { totalRewardChange, totalWinChange };
     }
     
@@ -945,6 +950,31 @@
           winsElement.style.color = 'var(--primary-color)';
           winsElement.style.animation = '';
         }, 1000);
+      }
+    }
+    
+    // Function to clear peer changes
+    function clearPeerChanges() {
+      const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+      let hasChanges = false;
+      
+      for (const [peerId, peer] of Object.entries(savedPeers)) {
+        if (peer.changes && (peer.changes.reward !== 0 || peer.changes.score !== 0)) {
+          savedPeers[peerId] = {
+            ...peer,
+            changes: {
+              reward: 0,
+              score: 0
+            }
+          };
+          hasChanges = true;
+        }
+      }
+      
+      if (hasChanges) {
+        localStorage.setItem(savedPeersKey, JSON.stringify(savedPeers));
+        displaySavedPeers();
+        console.log('Cleared peer changes');
       }
     }
     
