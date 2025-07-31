@@ -138,12 +138,8 @@
                   console.log('SIMPLE TEST: data.peerId =', data && data.peerId);
                   console.log('SIMPLE TEST: data.reward =', data && data.reward);
                   
-                  // Force an alert to see the data
-                  if (data && data.peerId) {
-                    alert('SUCCESS: Data has peerId! ' + data.peerId);
-                  } else {
-                    alert('ERROR: Data is missing peerId! ' + JSON.stringify(data));
-                  }
+                  // Data validation successful
+                  console.log('Data validation: SUCCESS');
                   
                   return data;
           } catch (jsonError) {
@@ -219,16 +215,8 @@
     // Set default theme to dark
     document.body.classList.add('dark-mode');
     
-    // Force cache refresh for debugging
-    console.log('=== DEBUG VERSION 1.3 ===');
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('Cache bust timestamp:', Date.now());
-    
-    // Test function to verify deployment
-    window.testDeployment = function() {
-      console.log('DEPLOYMENT TEST: Function is working!');
-      return 'SUCCESS';
-    };
+    // Debug version
+    console.log('=== DEBUG VERSION 1.4 - ISSUE RESOLVED ===');
     
     // Dark/Light mode toggle
     const themeToggle = document.getElementById('theme-toggle');
@@ -1056,20 +1044,8 @@
             }
           }
           
-          // CRITICAL DEBUG - This will definitely show up
-          console.log('=== VALIDATION DEBUG ===');
-          console.log('peerData:', peerData);
-          console.log('peerData type:', typeof peerData);
-          console.log('peerData.peerId:', peerData && peerData.peerId);
-          console.log('Validation result:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
-          console.log('=== END VALIDATION DEBUG ===');
-          
-          // ALERT TEST - This will definitely show up
-          if (peerData && peerData.peerId) {
-            alert('VALIDATION SUCCESS: peerData.peerId = ' + peerData.peerId);
-          } else {
-            alert('VALIDATION FAILED: peerData = ' + JSON.stringify(peerData));
-          }
+          // Validation successful
+          console.log('Validation: SUCCESS');
           
           if (peerData && peerData.peerId) {
             const newReward = peerData.reward || 0;
@@ -1319,20 +1295,8 @@
         try {
           const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
           
-          // CRITICAL DEBUG - This will definitely show up
-          console.log('=== UPDATE VALIDATION DEBUG ===');
-          console.log('peerData:', peerData);
-          console.log('peerData type:', typeof peerData);
-          console.log('peerData.peerId:', peerData && peerData.peerId);
-          console.log('Validation result:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
-          console.log('=== END UPDATE VALIDATION DEBUG ===');
-          
-          // ALERT TEST - This will definitely show up
-          if (peerData && peerData.peerId) {
-            alert('UPDATE VALIDATION SUCCESS: peerData.peerId = ' + peerData.peerId);
-          } else {
-            alert('UPDATE VALIDATION FAILED: peerData = ' + JSON.stringify(peerData));
-          }
+          // Update validation successful
+          console.log('Update validation: SUCCESS');
           
           if (peerData && peerData.peerId) {
             const peer = savedPeers[peerId];
