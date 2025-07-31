@@ -991,7 +991,25 @@
           console.log('Peer data keys:', peerData ? Object.keys(peerData) : 'null/undefined');
           console.log('Has peerId?', peerData && peerData.peerId ? 'YES' : 'NO');
           console.log('peerId value:', peerData && peerData.peerId);
+          console.log('Raw peerData string:', JSON.stringify(peerData));
           console.log('=== END DEBUG ===');
+          
+          // Try to parse if it's a string
+          if (typeof peerData === 'string') {
+            try {
+              const parsedData = JSON.parse(peerData);
+              console.log('Parsed from string:', parsedData);
+              if (parsedData && parsedData.peerId) {
+                const newReward = parsedData.reward || 0;
+                const newScore = parsedData.score || 0;
+                // ... rest of the logic
+                return;
+              }
+            } catch (e) {
+              console.log('Failed to parse string:', e);
+            }
+          }
+          
           if (peerData && peerData.peerId) {
             const newReward = peerData.reward || 0;
             const newScore = peerData.score || 0;
