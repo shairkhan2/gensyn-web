@@ -282,7 +282,7 @@
         const entries = data.entries || [];
         const matchingPeer = entries.find(peer => peer.eoa && peer.eoa.toLowerCase() === eoa.toLowerCase());
         
-        if (matchingPeer) {
+        if (matchingPeer && matchingPeer.peerName) {
           // Found peer info for this EOA
           detailDiv.innerHTML = `
             <div class="peer-card">
@@ -375,6 +375,11 @@
         // Save peer data automatically
         savePeerData(peerData);
         
+        // Validate peer data before displaying
+        if (!peerData || !peerData.peerName) {
+          throw new Error('Invalid peer data received');
+        }
+        
         detailDiv.innerHTML = `
           <div class="peer-card">
             <div class="peer-header">
@@ -413,7 +418,30 @@
         `;
       } catch (err) {
         console.error('Search error:', err);
-        detailDiv.innerHTML = `<span style="color:red">Peer not found or error fetching data: ${err.message}</span>`;
+        detailDiv.innerHTML = `
+          <div class="peer-card">
+            <div class="peer-header">
+              <div class="peer-avatar">❌</div>
+              <div class="peer-info">
+                <h3 class="peer-name">Search Failed</h3>
+                <span class="peer-status offline">🔴 Error</span>
+              </div>
+            </div>
+            <div class="peer-details">
+              <div class="detail-item">
+                <span class="detail-label">Search Query</span>
+                <span class="detail-value">${query}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Error</span>
+                <span class="detail-value" style="color: #ff6b6b;">${err.message}</span>
+              </div>
+            </div>
+            <div class="peer-footer">
+              <span style="color: #ffa500;">⚠️ Try searching with a valid peer name or ID</span>
+            </div>
+          </div>
+        `;
       }
     });
 
@@ -656,6 +684,12 @@
     const savedPeersKey = 'gensyn_saved_peers';
     
     function savePeerData(peerData) {
+      // Validate peer data before saving
+      if (!peerData || !peerData.peerId || !peerData.peerName) {
+        console.error('Invalid peer data:', peerData);
+        return;
+      }
+      
       const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
       const now = new Date().toISOString();
       
@@ -716,9 +750,15 @@
       let html = `<div class="saved-peers-grid" data-peer-count="${peerCount}">`;
       
       Object.values(savedPeers).forEach(peer => {
+        // Skip invalid peers
+        if (!peer || !peer.peerName || !peer.peerId) {
+          console.error('Invalid peer data found:', peer);
+          return;
+        }
+        
         const lastUpdated = new Date(peer.lastUpdated).toLocaleString();
-        const rewardChange = peer.changes.reward;
-        const scoreChange = peer.changes.score;
+        const rewardChange = peer.changes?.reward || 0;
+        const scoreChange = peer.changes?.score || 0;
         
         html += `
           <div class="saved-peer-card" onclick="showSavedPeerDetails('${peer.peerId}')" style="cursor: pointer;">
