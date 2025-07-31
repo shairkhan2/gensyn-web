@@ -134,6 +134,7 @@
                   console.log('Response data type:', typeof data);
                   console.log('Response data keys:', data ? Object.keys(data) : 'null/undefined');
                   console.log('Raw response text:', JSON.stringify(data));
+                  console.log('=== PROXY DEBUG END ===');
                   return data;
           } catch (jsonError) {
             console.error('Failed to parse JSON from proxy:', jsonError);
@@ -1002,6 +1003,16 @@
           console.log('Raw peerData string:', JSON.stringify(peerData));
           console.log('Validation check:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
           console.log('=== END DEBUG ===');
+          
+          // Simple test to verify data structure
+          if (peerData) {
+            console.log('TEST: peerData exists');
+            console.log('TEST: peerData.peerId =', peerData.peerId);
+            console.log('TEST: peerData.reward =', peerData.reward);
+            console.log('TEST: peerData.score =', peerData.score);
+          } else {
+            console.log('TEST: peerData is null/undefined');
+          }
           
           // Try to parse if it's a string
           if (typeof peerData === 'string') {
