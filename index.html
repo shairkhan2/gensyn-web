@@ -1319,6 +1319,21 @@
         try {
           const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
           
+          // CRITICAL DEBUG - This will definitely show up
+          console.log('=== UPDATE VALIDATION DEBUG ===');
+          console.log('peerData:', peerData);
+          console.log('peerData type:', typeof peerData);
+          console.log('peerData.peerId:', peerData && peerData.peerId);
+          console.log('Validation result:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
+          console.log('=== END UPDATE VALIDATION DEBUG ===');
+          
+          // ALERT TEST - This will definitely show up
+          if (peerData && peerData.peerId) {
+            alert('UPDATE VALIDATION SUCCESS: peerData.peerId = ' + peerData.peerId);
+          } else {
+            alert('UPDATE VALIDATION FAILED: peerData = ' + JSON.stringify(peerData));
+          }
+          
           if (peerData && peerData.peerId) {
             const peer = savedPeers[peerId];
             const newReward = peerData.reward || 0;
