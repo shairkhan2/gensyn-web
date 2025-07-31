@@ -980,6 +980,7 @@
     
     // Function to refresh saved peers data
     async function refreshSavedPeers() {
+      console.log('=== REFRESH FUNCTION CALLED ===');
       const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
       const updatedPeers = {};
       let totalRewardChange = 0;
@@ -1256,6 +1257,7 @@
     
     // Update saved peers with rate limiting (every 15 minutes)
     async function updateSavedPeers() {
+      console.log('=== UPDATE FUNCTION CALLED ===');
       const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
       const peerIds = Object.keys(savedPeers);
       
@@ -1378,6 +1380,7 @@
     displaySavedPeers();
     
     // Update saved peers data immediately on page load
+    console.log('=== CALLING INITIAL UPDATE ===');
     updateSavedPeers();
     
     // --- Display saved peers in slider ---
