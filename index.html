@@ -137,6 +137,14 @@
                   console.log('=== PROXY DEBUG END ===');
                   console.log('SIMPLE TEST: data.peerId =', data && data.peerId);
                   console.log('SIMPLE TEST: data.reward =', data && data.reward);
+                  
+                  // Force an alert to see the data
+                  if (data && data.peerId) {
+                    console.log('ALERT: Data has peerId!', data.peerId);
+                  } else {
+                    console.log('ALERT: Data is missing peerId!', data);
+                  }
+                  
                   return data;
           } catch (jsonError) {
             console.error('Failed to parse JSON from proxy:', jsonError);
@@ -1005,6 +1013,17 @@
           console.log('peerId value:', peerData && peerData.peerId);
           console.log('Raw peerData string:', JSON.stringify(peerData));
           console.log('Validation check:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
+          
+          // CRITICAL TEST - This will definitely show up
+          if (peerData) {
+            console.log('CRITICAL: peerData exists');
+            console.log('CRITICAL: peerData.peerId =', peerData.peerId);
+            console.log('CRITICAL: peerData.reward =', peerData.reward);
+            console.log('CRITICAL: peerData.score =', peerData.score);
+          } else {
+            console.log('CRITICAL: peerData is null/undefined');
+          }
+          
           console.log('=== END DEBUG ===');
           
           // Simple test to verify data structure
