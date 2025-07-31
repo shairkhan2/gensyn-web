@@ -772,8 +772,12 @@
       let totalRewardChange = 0;
       let totalWinChange = 0;
       
+      console.log('Starting refresh of saved peers:', Object.keys(savedPeers));
+      
       for (const [peerId, peer] of Object.entries(savedPeers)) {
         try {
+          console.log(`Refreshing peer: ${peer.peerName} (${peerId})`);
+          
           // Fetch latest peer data
           const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
           
@@ -802,12 +806,40 @@
             totalWinChange += scoreChange;
             
             console.log(`Peer ${peer.peerName}: Reward ${peer.reward} → ${newReward} (${rewardChange > 0 ? '+' : ''}${rewardChange}), Score ${peer.score} → ${newScore} (${scoreChange > 0 ? '+' : ''}${scoreChange})`);
+          } else {
+            console.log(`No valid peer data received for ${peer.peerName}, keeping existing data`);
+            // Keep existing data if no valid response
+            updatedPeers[peerId] = {
+              ...peer,
+              lastUpdated: Date.now(),
+              changes: {
+                reward: 0,
+                score: 0
+              }
+            };
           }
         } catch (error) {
           console.error(`Failed to refresh peer ${peer.peerName}:`, error);
           // Keep existing data if refresh fails
-          updatedPeers[peerId] = peer;
+          updatedPeers[peerId] = {
+            ...peer,
+            lastUpdated: Date.now(),
+            changes: {
+              reward: 0,
+              score: 0
+            }
+          };
         }
+      }
+      
+      console.log('Updated peers:', Object.keys(updatedPeers));
+      
+      // Safety check: ensure we have the same number of peers
+      if (Object.keys(updatedPeers).length !== Object.keys(savedPeers).length) {
+        console.error('WARNING: Peer count mismatch! Keeping original data.');
+        console.log('Original peers:', Object.keys(savedPeers));
+        console.log('Updated peers:', Object.keys(updatedPeers));
+        return { totalRewardChange: 0, totalWinChange: 0 };
       }
       
       // Save updated peers
