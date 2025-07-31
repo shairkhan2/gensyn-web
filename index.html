@@ -129,11 +129,12 @@
         if (response.ok) {
           try {
             const data = await response.json();
-            console.log('Success with our own proxy API');
-            console.log('Response data:', data);
-            console.log('Response data type:', typeof data);
-            console.log('Response data keys:', data ? Object.keys(data) : 'null/undefined');
-            return data;
+                              console.log('Success with our own proxy API');
+                  console.log('Response data:', data);
+                  console.log('Response data type:', typeof data);
+                  console.log('Response data keys:', data ? Object.keys(data) : 'null/undefined');
+                  console.log('Raw response text:', JSON.stringify(data));
+                  return data;
           } catch (jsonError) {
             console.error('Failed to parse JSON from proxy:', jsonError);
             const text = await response.text();
@@ -992,6 +993,7 @@
           console.log('Has peerId?', peerData && peerData.peerId ? 'YES' : 'NO');
           console.log('peerId value:', peerData && peerData.peerId);
           console.log('Raw peerData string:', JSON.stringify(peerData));
+          console.log('Validation check:', peerData && peerData.peerId ? 'PASS' : 'FAIL');
           console.log('=== END DEBUG ===');
           
           // Try to parse if it's a string
