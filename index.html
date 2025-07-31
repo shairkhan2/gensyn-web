@@ -131,6 +131,8 @@
             const data = await response.json();
             console.log('Success with our own proxy API');
             console.log('Response data:', data);
+            console.log('Response data type:', typeof data);
+            console.log('Response data keys:', data ? Object.keys(data) : 'null/undefined');
             return data;
           } catch (jsonError) {
             console.error('Failed to parse JSON from proxy:', jsonError);
@@ -980,6 +982,8 @@
           const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
           
           console.log('Peer data received:', peerData);
+          console.log('Peer data type:', typeof peerData);
+          console.log('Peer data keys:', peerData ? Object.keys(peerData) : 'null/undefined');
           if (peerData && peerData.peerId) {
             const newReward = peerData.reward || 0;
             const newScore = peerData.score || 0;
