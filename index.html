@@ -207,6 +207,9 @@
     // Set default theme to dark
     document.body.classList.add('dark-mode');
     
+    // Force cache refresh for debugging
+    console.log('=== DEBUG VERSION 1.1 ===');
+    
     // Dark/Light mode toggle
     const themeToggle = document.getElementById('theme-toggle');
     themeToggle.textContent = '☀️'; // Start with sun icon since dark mode is default
@@ -981,9 +984,13 @@
           // Fetch latest peer data
           const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
           
+          console.log('=== PEER DATA DEBUG ===');
           console.log('Peer data received:', peerData);
           console.log('Peer data type:', typeof peerData);
           console.log('Peer data keys:', peerData ? Object.keys(peerData) : 'null/undefined');
+          console.log('Has peerId?', peerData && peerData.peerId ? 'YES' : 'NO');
+          console.log('peerId value:', peerData && peerData.peerId);
+          console.log('=== END DEBUG ===');
           if (peerData && peerData.peerId) {
             const newReward = peerData.reward || 0;
             const newScore = peerData.score || 0;
