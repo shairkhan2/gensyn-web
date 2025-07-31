@@ -129,6 +129,7 @@
         if (response.ok) {
           const data = await response.json();
           console.log('Success with our own proxy API');
+          console.log('Response data:', data);
           return data;
         } else {
           console.log('Proxy response not ok:', response.status, response.statusText);
@@ -559,8 +560,8 @@
         return;
       }
       
-      let table = `<div class='gensyn-leaderboard-title'>Top 10 (Gensyn Leaderboard)</div>`;
-      table += `<table class='gensyn-leaderboard-table'><thead><tr><th>Rank</th><th>Δ</th><th>Peer ID</th><th>Wins</th><th>Rewards</th></tr></thead><tbody>`;
+              let table = `<div class='gensyn-leaderboard-title'>Top 10 (Gensyn Leaderboard)</div>`;
+        table += `<table class='gensyn-leaderboard-table'><thead><tr><th>Rank</th><th>Peer ID</th><th>Wins</th><th>Rewards</th></tr></thead><tbody>`;
       entries.forEach((peer, idx) => {
         let rank, delta;
         if (idx === 0) { rank = '🥇'; delta = '▲1'; }
@@ -571,7 +572,6 @@
         const shortPeerId = peer.peerId.slice(0, 8);
         table += `<tr class='gensyn-leaderboard-row' data-peerid="${peer.peerId}">
           <td>${rank}</td>
-          <td>${delta}</td>
           <td class='gensyn-peerid'>${shortPeerId}</td>
           <td>${peer.score.toLocaleString()}</td>
           <td>${peer.reward.toLocaleString()}</td>
@@ -763,16 +763,40 @@
       
       if (Object.keys(savedPeers).length === 0) {
         container.innerHTML = '<p>No saved peers yet. Search for peers to save them!</p>';
+        // Clear totals when no peers
+        document.getElementById('total-rewards').textContent = '0';
+        document.getElementById('total-wins').textContent = '0';
         return;
       }
       
-      // Calculate summary stats
-      const totalRewards = Object.values(savedPeers).reduce((sum, peer) => sum + peer.reward, 0);
-      const totalWins = Object.values(savedPeers).reduce((sum, peer) => sum + peer.score, 0);
+      // Calculate summary stats with error handling
+      const totalRewards = Object.values(savedPeers).reduce((sum, peer) => {
+        if (peer && typeof peer.reward === 'number') {
+          return sum + peer.reward;
+        }
+        return sum;
+      }, 0);
+      
+      const totalWins = Object.values(savedPeers).reduce((sum, peer) => {
+        if (peer && typeof peer.score === 'number') {
+          return sum + peer.score;
+        }
+        return sum;
+      }, 0);
       
       // Update header summary
-      document.getElementById('total-rewards').textContent = totalRewards.toLocaleString();
-      document.getElementById('total-wins').textContent = totalWins.toLocaleString();
+      const rewardsElement = document.getElementById('total-rewards');
+      const winsElement = document.getElementById('total-wins');
+      
+      if (rewardsElement) {
+        rewardsElement.textContent = totalRewards.toLocaleString();
+      }
+      
+      if (winsElement) {
+        winsElement.textContent = totalWins.toLocaleString();
+      }
+      
+      console.log(`Updated totals: Rewards=${totalRewards}, Wins=${totalWins}`);
       
       const peerCount = Object.keys(savedPeers).length;
       let html = `<div class="saved-peers-grid" data-peer-count="${peerCount}">`;
@@ -833,6 +857,89 @@
     // Make removeSavedPeer globally accessible
     window.removeSavedPeer = removeSavedPeer;
     
+    // Debug function to check saved peers state
+    window.debugSavedPeers = function() {
+      const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+      const totalRewards = Object.values(savedPeers).reduce((sum, peer) => sum + peer.reward, 0);
+      const totalWins = Object.values(savedPeers).reduce((sum, peer) => sum + peer.score, 0);
+      
+      console.log('=== Saved Peers Debug ===');
+      console.log('Total peers:', Object.keys(savedPeers).length);
+      console.log('Total rewards:', totalRewards);
+      console.log('Total wins:', totalWins);
+      console.log('Peers:', savedPeers);
+      console.log('=======================');
+      
+      return { savedPeers, totalRewards, totalWins };
+    };
+    
+    // Force refresh totals display
+    window.forceRefreshTotals = function() {
+      displaySavedPeers();
+      console.log('Forced refresh of totals display');
+    };
+    
+    // Clear rate limit for saved peers updates
+    window.clearSavedPeersRateLimit = function() {
+      const rateLimit = localStorage.getItem(rateLimitKey);
+      const limits = rateLimit ? JSON.parse(rateLimit) : {};
+      delete limits.savedPeersUpdate;
+      localStorage.setItem(rateLimitKey, JSON.stringify(limits));
+      console.log('Cleared saved peers rate limit');
+    };
+    
+    // Force immediate refresh of saved peers
+    window.forceRefreshSavedPeers = function() {
+      console.log('Force refreshing saved peers...');
+      clearSavedPeersRateLimit();
+      updateSavedPeers();
+    };
+    
+    // Clean up invalid peers (those that consistently return 404)
+    window.cleanupInvalidPeers = function() {
+      const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+      const validPeers = {};
+      let removedCount = 0;
+      
+      for (const [peerId, peer] of Object.entries(savedPeers)) {
+        // Keep peers that are online or have recent activity
+        if (peer.online !== false || (peer.lastUpdated && Date.now() - peer.lastUpdated < 24 * 60 * 60 * 1000)) {
+          validPeers[peerId] = peer;
+        } else {
+          removedCount++;
+          console.log(`Removing invalid peer: ${peer.peerName} (${peerId})`);
+        }
+      }
+      
+      localStorage.setItem(savedPeersKey, JSON.stringify(validPeers));
+      displaySavedPeers();
+      console.log(`Cleaned up ${removedCount} invalid peers`);
+      
+      return { removedCount, remainingCount: Object.keys(validPeers).length };
+    };
+    
+    // Remove offline peers
+    window.removeOfflinePeers = function() {
+      const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
+      const onlinePeers = {};
+      let removedCount = 0;
+      
+      for (const [peerId, peer] of Object.entries(savedPeers)) {
+        if (peer.online !== false) {
+          onlinePeers[peerId] = peer;
+        } else {
+          removedCount++;
+          console.log(`Removing offline peer: ${peer.peerName} (${peerId})`);
+        }
+      }
+      
+      localStorage.setItem(savedPeersKey, JSON.stringify(onlinePeers));
+      displaySavedPeers();
+      console.log(`Removed ${removedCount} offline peers`);
+      
+      return { removedCount, remainingCount: Object.keys(onlinePeers).length };
+    };
+    
     // Function to refresh saved peers data
     async function refreshSavedPeers() {
       const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
@@ -849,9 +956,10 @@
           // Fetch latest peer data
           const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
           
-          if (peerData && peerData.peer) {
-            const newReward = peerData.peer.reward || 0;
-            const newScore = peerData.peer.score || 0;
+          console.log('Peer data received:', peerData);
+          if (peerData && peerData.peerId) {
+            const newReward = peerData.reward || 0;
+            const newScore = peerData.score || 0;
             
             // Calculate changes
             const rewardChange = newReward - peer.reward;
@@ -863,6 +971,7 @@
               reward: newReward,
               score: newScore,
               lastUpdated: Date.now(),
+              online: true, // Mark as online since we got valid data
               changes: {
                 reward: rewardChange,
                 score: scoreChange
@@ -875,8 +984,38 @@
             
             console.log(`Peer ${peer.peerName}: Reward ${peer.reward} → ${newReward} (${rewardChange > 0 ? '+' : ''}${rewardChange}), Score ${peer.score} → ${newScore} (${scoreChange > 0 ? '+' : ''}${scoreChange})`);
           } else {
-            console.log(`No valid peer data received for ${peer.peerName}, keeping existing data`);
-            // Keep existing data if no valid response
+            console.log(`No valid peer data received for ${peer.peerName}, marking as offline`);
+            console.log('Invalid peer data structure:', peerData);
+            // Mark peer as offline if no valid response
+            updatedPeers[peerId] = {
+              ...peer,
+              lastUpdated: Date.now(),
+              online: false, // Mark as offline
+              changes: {
+                reward: 0,
+                score: 0
+              }
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to refresh peer ${peer.peerName}:`, error);
+          
+          // Check if it's a 404 error (peer not found)
+          const is404Error = error.message && error.message.includes('404');
+          
+          if (is404Error) {
+            console.log(`Peer ${peer.peerName} not found (404), marking as offline`);
+            updatedPeers[peerId] = {
+              ...peer,
+              lastUpdated: Date.now(),
+              online: false, // Mark as offline
+              changes: {
+                reward: 0,
+                score: 0
+              }
+            };
+          } else {
+            // Keep existing data for other types of errors
             updatedPeers[peerId] = {
               ...peer,
               lastUpdated: Date.now(),
@@ -886,17 +1025,6 @@
               }
             };
           }
-        } catch (error) {
-          console.error(`Failed to refresh peer ${peer.peerName}:`, error);
-          // Keep existing data if refresh fails
-          updatedPeers[peerId] = {
-            ...peer,
-            lastUpdated: Date.now(),
-            changes: {
-              reward: 0,
-              score: 0
-            }
-          };
         }
       }
       
@@ -915,6 +1043,9 @@
       
       // Update display
       displaySavedPeers();
+      
+      // Update slider with saved peers data
+      displaySavedPeersSlider();
       
       // Show total changes in summary if any
       if (totalRewardChange !== 0 || totalWinChange !== 0) {
@@ -974,6 +1105,7 @@
       if (hasChanges) {
         localStorage.setItem(savedPeersKey, JSON.stringify(savedPeers));
         displaySavedPeers();
+        displaySavedPeersSlider();
         console.log('Cleared peer changes');
       }
     }
@@ -1064,28 +1196,107 @@
       
       console.log(`Updating ${peerIds.length} saved peers...`);
       
+      const updatedPeers = {};
+      let totalRewardChange = 0;
+      let totalWinChange = 0;
+      
       for (const peerId of peerIds) {
         try {
-          const response = await fetch(corsProxy + `https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
-          if (response.ok) {
-            const peerData = await response.json();
-            savePeerData(peerData); // This will update the existing peer with new data
+          const peerData = await fetchWithCorsProxy(`https://dashboard.gensyn.ai/api/v1/peer?id=${peerId}`);
+          
+          if (peerData && peerData.peerId) {
+            const peer = savedPeers[peerId];
+            const newReward = peerData.reward || 0;
+            const newScore = peerData.score || 0;
+            
+            // Calculate changes
+            const rewardChange = newReward - peer.reward;
+            const scoreChange = newScore - peer.score;
+            
+            // Update peer data
+            updatedPeers[peerId] = {
+              ...peer,
+              reward: newReward,
+              score: newScore,
+              lastUpdated: Date.now(),
+              online: true, // Mark as online since we got valid data
+              changes: {
+                reward: rewardChange,
+                score: scoreChange
+              }
+            };
+            
+            // Add to total changes
+            totalRewardChange += rewardChange;
+            totalWinChange += scoreChange;
+            
+            console.log(`Auto-update peer ${peer.peerName}: Reward ${peer.reward} → ${newReward} (${rewardChange > 0 ? '+' : ''}${rewardChange}), Score ${peer.score} → ${newScore} (${scoreChange > 0 ? '+' : ''}${scoreChange})`);
+          } else {
+            console.log(`No valid peer data received for ${savedPeers[peerId].peerName}, marking as offline`);
+            // Mark peer as offline if no valid response
+            updatedPeers[peerId] = {
+              ...savedPeers[peerId],
+              lastUpdated: Date.now(),
+              online: false, // Mark as offline
+              changes: {
+                reward: 0,
+                score: 0
+              }
+            };
           }
         } catch (err) {
           console.error(`Error updating peer ${peerId}:`, err);
+          
+          // Check if it's a 404 error (peer not found)
+          const is404Error = err.message && err.message.includes('404');
+          
+          if (is404Error) {
+            console.log(`Peer ${savedPeers[peerId].peerName} not found (404), marking as offline`);
+            updatedPeers[peerId] = {
+              ...savedPeers[peerId],
+              lastUpdated: Date.now(),
+              online: false, // Mark as offline
+              changes: {
+                reward: 0,
+                score: 0
+              }
+            };
+          } else {
+            // Keep existing data for other types of errors
+            updatedPeers[peerId] = savedPeers[peerId];
+          }
         }
         
         // Small delay between requests to be respectful
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
+      // Save updated peers
+      localStorage.setItem(savedPeersKey, JSON.stringify(updatedPeers));
+      
+      // Update display
+      displaySavedPeers();
+      
+      // Update slider with saved peers data
+      displaySavedPeersSlider();
+      
+      // Show total changes in summary if any
+      if (totalRewardChange !== 0 || totalWinChange !== 0) {
+        showTotalChanges(totalRewardChange, totalWinChange);
+      }
+      
+      // Clear changes after 5 seconds
+      setTimeout(() => {
+        clearPeerChanges();
+      }, 5000);
+      
       // Set rate limit after updating all peers
       setRateLimit('savedPeersUpdate');
       console.log('Saved peers updated successfully');
     }
     
-    // Update saved peers every 15 minutes
-    setInterval(updateSavedPeers, 15 * 60 * 1000); // 15 minutes
+    // Update saved peers every 5 minutes for more frequent updates
+    setInterval(updateSavedPeers, 5 * 60 * 1000); // 5 minutes
     
     // Fetch stats on page load
     fetchNetworkStats();
@@ -1093,56 +1304,40 @@
     // Display saved peers on page load
     displaySavedPeers();
     
-    // --- Fix for rewards slider visibility and animation ---
-    async function fetchTopRewards() {
+    // Update saved peers data immediately on page load
+    updateSavedPeers();
+    
+    // --- Display saved peers in slider ---
+    function displaySavedPeersSlider() {
       const sliderDiv = document.getElementById('rewards-slider');
+      const savedPeers = JSON.parse(localStorage.getItem(savedPeersKey) || '{}');
       
-      // Try to get cached data first
-      const cachedData = getCachedData('topRewards');
-      if (cachedData) {
-        displayTopRewards(cachedData);
-      }
+      sliderDiv.style.display = 'block';
       
-      // Check rate limit for top rewards (15 min interval)
-      if (isRateLimited('topRewards') && cachedData) {
-        console.log('Top rewards rate limited, using cached data');
+      if (Object.keys(savedPeers).length === 0) {
+        sliderDiv.innerHTML = '<span class="reward-item">No saved peers yet. Search for peers to track them!</span>';
         return;
       }
       
-      try {
-        const data = await fetchWithCorsProxy('https://dashboard.gensyn.ai/api/v1/top-rewards');
+      // Sort peers by reward (highest first) and take top 10, filter out invalid peers
+      const sortedPeers = Object.values(savedPeers)
+        .filter(peer => peer && peer.peerName && peer.reward !== undefined)
+        .sort((a, b) => b.reward - a.reward)
+        .slice(0, 10);
+      
+      const rewardsHtml = sortedPeers.map(peer => {
+        const changeIndicator = peer.changes && peer.changes.reward !== 0 
+          ? ` <span style="color: ${peer.changes.reward > 0 ? '#00ff88' : '#ff4757'}; font-weight: bold;">(${peer.changes.reward > 0 ? '+' : ''}${peer.changes.reward})</span>`
+          : '';
         
-        // Cache the new data and set rate limit
-        setCachedData('topRewards', data);
-        setRateLimit('topRewards');
-        
-        displayTopRewards(data);
-      } catch (err) {
-        console.error('Top rewards error:', err);
-        // If API fails and no cached data, show error
-        if (!cachedData) {
-          sliderDiv.innerHTML = '<span class="reward-item">Error loading rewards</span>';
-        }
-      }
+        return `<span class="reward-item">${peer.peerName} - ${peer.reward.toLocaleString()}${changeIndicator}</span>`;
+      }).join(' ');
+      
+      sliderDiv.innerHTML = rewardsHtml;
     }
     
-    function displayTopRewards(data) {
-      const sliderDiv = document.getElementById('rewards-slider');
-      sliderDiv.style.display = 'block';
-      if (data.entries && data.entries.length > 0) {
-        const rewardsHtml = data.entries.map(entry =>
-          `<span class="reward-item">${entry.name} - ${entry.reward.toLocaleString()}</span>`
-        ).join(' • ');
-        
-        sliderDiv.innerHTML = rewardsHtml;
-      } else {
-        sliderDiv.innerHTML = '<span class="reward-item">No rewards data available</span>';
-      }
-    }
-    
-    // Fetch top rewards on page load and refresh every 15 minutes
-    fetchTopRewards();
-    setInterval(fetchTopRewards, 15 * 60 * 1000); // 15 minutes
+    // Display saved peers slider on page load and update when peers change
+    displaySavedPeersSlider();
     
     // Email Modal Functions
     function openEmailModal() {

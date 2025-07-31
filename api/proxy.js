@@ -16,9 +16,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'URL parameter is required' });
   }
 
+  // Decode the URL if it's encoded
+  const decodedUrl = decodeURIComponent(url);
+
   try {
-    console.log('Proxying request to:', url);
-    const response = await fetch(url, {
+    console.log('Proxying request to:', decodedUrl);
+    const response = await fetch(decodedUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
