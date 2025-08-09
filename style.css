@@ -1,16 +1,16 @@
 /* Gen Z Color Palette */
 :root {
-  --primary-color: #6467e3;
-  --secondary-color: #211f26;
-  --accent-color: #1b2021;
-  --success-color: #58dbb0;
-  --warning-color: #9b8257;
-  --error-color: #fb0101;
+  --primary-color: #6366f1;
+  --secondary-color: #8b5cf6;
+  --accent-color: #06b6d4;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
   --dark-bg: #0f172a;
   --dark-card: #1e293b;
   --dark-border: #334155;
-  --text-light: #6ca8e3;
-  --text-muted: #5c7dad;
+  --text-light: #f1f5f9;
+  --text-muted: #94a3b8;
 }
 
 /* Base Styles */
