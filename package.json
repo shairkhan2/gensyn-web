@@ -1,0 +1,18 @@
+{
+  "name": "gensyn-peer-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gensyn Peer Tracker Dashboard",
+  "main": "index.html",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node dev-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2"
+  }
+}
