@@ -19,8 +19,8 @@
     .chip { padding: 0.35rem 0.7rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: inherit; font-size: 0.8rem; cursor: pointer; }
     .chip.active { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border-color: transparent; }
     .history-list { display: grid; gap: 0.8rem; margin-top: 1rem; }
-    .history-item { display:grid; grid-template-columns: 1fr auto; gap:0.6rem; align-items:center; padding: 0.9rem 1rem; border-radius: 12px; border:1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
-    .history-item .meta { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+    .history-item { display:grid; grid-template-columns: 1fr auto; gap:0.8rem; align-items:flex-start; padding: 1rem; border-radius: 12px; border:1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
+    .history-item .meta { display:flex; gap:0.8rem; align-items:flex-start; flex-wrap:wrap; min-width:0; }
     .pill { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.7rem; border:1px solid rgba(255,255,255,0.2); backdrop-filter: blur(6px); }
     .pill.pos { color: #00ff88; background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.35); }
     .pill.neg { color: #ff4757; background: rgba(255,71,87,0.15); border-color: rgba(255,71,87,0.35); }
@@ -30,6 +30,8 @@
     .btn-link { background: rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color: inherit; text-decoration:none; padding:0.5rem 0.9rem; border-radius:10px; display:inline-flex; align-items:center; gap:0.45rem; }
     .btn-danger { background: linear-gradient(135deg, #ef4444, #f97316); color:#fff; border:none; }
     .empty { text-align:center; padding: 2rem 0.5rem; opacity:0.8; }
+    .copyable { transition: all 0.2s ease; }
+    .copyable:hover { background: rgba(255,255,255,0.1) !important; border-color: rgba(255,255,255,0.3) !important; transform: translateY(-1px); }
   </style>
 </head>
 <body>
@@ -45,20 +47,12 @@
         <h2>📈 Reward & Win History</h2>
         <div class="controls-right">
           <a href="/" class="btn-link">← Home</a>
-          <button id="clear-history" class="email-sync-btn-small btn-danger">Clear History</button>
         </div>
       </div>
       <div class="center-summary" style="justify-content:flex-start; gap:1rem;">
         <div><span class="summary-icon">🧮</span> <span class="summary-value" id="entries-count">0</span> entries</div>
         <div><span class="summary-icon">🎁</span> Δ <span class="summary-value" id="total-reward-delta">0</span></div>
         <div><span class="summary-icon">🏆</span> Δ <span class="summary-value" id="total-win-delta">0</span></div>
-      </div>
-      <div class="history-controls" style="margin-top:0.5rem;">
-        <button class="chip active" data-filter="all">All</button>
-        <button class="chip" data-filter="reward">Reward only</button>
-        <button class="chip" data-filter="win">Wins only</button>
-        <button class="chip" data-filter="positive">Gains</button>
-        <button class="chip" data-filter="negative">Losses</button>
       </div>
       <div id="history-content" class="history-list"></div>
     </section>
@@ -100,17 +94,32 @@
     }
     function saveHistory(list){ localStorage.setItem(CHANGES_KEY, JSON.stringify(list)); }
 
+    // Copy to clipboard function
+    async function copyToClipboard(text, element) {
+      try {
+        await navigator.clipboard.writeText(text);
+        const originalText = element.textContent;
+        element.textContent = 'Copied!';
+        element.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        element.style.color = '#fff';
+        element.style.borderColor = 'transparent';
+        setTimeout(() => {
+          element.textContent = originalText;
+          element.style.background = '';
+          element.style.color = '';
+          element.style.borderColor = '';
+        }, 1500);
+      } catch (err) {
+        console.error('Copy failed:', err);
+      }
+    }
+
     function renderHistory(filter){
       const content = document.getElementById('history-content');
       const entries = loadHistory();
-      const filtered = entries.filter((e) => {
-        if (!filter || filter==='all') return true;
-        if (filter==='reward') return (e.rewardDelta||0) !== 0;
-        if (filter==='win') return (e.winDelta||0) !== 0;
-        if (filter==='positive') return (e.rewardDelta||0) > 0 || (e.winDelta||0) > 0;
-        if (filter==='negative') return (e.rewardDelta||0) < 0 || (e.winDelta||0) < 0;
-        return true;
-      });
+      
+      // Since we only have "All" filter now, show all entries
+      const filtered = entries;
 
       // Summary
       const totals = filtered.reduce((acc, e)=>{
@@ -135,47 +144,32 @@
         const rPill = r !== 0 ? `<span class="${rClass}">🎁 ${r>0?'+':''}${r}</span>` : '';
         const wPill = w !== 0 ? `<span class="${wClass}">🏆 ${w>0?'+':''}${w}</span>` : '';
         const after = (e.rewardAfter!=null || e.scoreAfter!=null) ? `<span class="mono subtle">→ ${e.rewardAfter?.toLocaleString?.()||e.rewardAfter||'?'} / ${e.scoreAfter?.toLocaleString?.()||e.scoreAfter||'?'}</span>` : '';
-        const eoa = e.eoa ? `<span class="mono subtle" title="EOA">${(e.eoa.length>10? e.eoa.slice(0,10)+'…':e.eoa)}</span>` : '';
+        
         return `
           <div class="history-item">
             <div class="meta">
-              <span class="saved-peer-avatar" style="width:28px;height:28px;font-size:0.9rem;">${(e.peerName||'?').charAt(0).toUpperCase()}</span>
-              <strong>${e.peerName||'Unknown peer'}</strong>
-              <span class="mono subtle" title="Peer ID">${(e.peerId||'').slice(0,10)}${(e.peerId||'').length>10?'…':''}</span>
-              ${eoa}
-              ${after}
+              <span class="saved-peer-avatar" style="width:32px;height:32px;font-size:1rem;">${(e.peerName||'?').charAt(0).toUpperCase()}</span>
+              <div style="display:flex; flex-direction:column; gap:0.2rem; min-width:0; flex:1;">
+                <strong style="font-size:1rem;">${e.peerName||'Unknown peer'}</strong>
+                <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+                  <span class="mono copyable" style="cursor:pointer; padding:0.2rem 0.4rem; background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(255,255,255,0.1); font-size:0.75rem;" title="Click to copy Peer ID" onclick="copyToClipboard('${e.peerId||''}', this)">${e.peerId||'N/A'}</span>
+                  ${e.eoa ? `<span class="mono copyable" style="cursor:pointer; padding:0.2rem 0.4rem; background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(255,255,255,0.1); font-size:0.75rem;" title="Click to copy EOA" onclick="copyToClipboard('${e.eoa}', this)">${e.eoa}</span>` : ''}
+                </div>
+                ${after}
+              </div>
             </div>
-            <div style="display:flex; gap:0.4rem; align-items:center; justify-content:flex-end;">
+            <div style="display:flex; gap:0.4rem; align-items:center; justify-content:flex-end; flex-shrink:0;">
               ${rPill}
               ${wPill}
-              <span class="mono subtle" title="When">${t}</span>
+              <span class="mono subtle" style="font-size:0.7rem; opacity:0.7;" title="When">${t}</span>
             </div>
           </div>`;
       }).join('');
     }
 
-    // Filters
-    let activeFilter = 'all';
-    document.querySelectorAll('.chip').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        activeFilter = btn.dataset.filter;
-        renderHistory(activeFilter);
-      });
-    });
-
-    // Clear history
-    document.getElementById('clear-history').addEventListener('click', ()=>{
-      if (!confirm('Clear all history entries?')) return;
-      saveHistory([]);
-      renderHistory(activeFilter);
-    });
-
     // Initial render
-    renderHistory(activeFilter);
+    renderHistory('all');
   </script>
 </body>
 </html>
-
 
