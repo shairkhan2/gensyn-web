@@ -13,6 +13,16 @@ const PORT = process.env.PORT || 3000;
 // Serve static files from current directory (contains index.html)
 app.use(express.static(__dirname));
 
+// Support extensionless HTML routes (e.g., /card → card.html)
+app.get('/:page', (req, res, next) => {
+  const page = (req.params.page || '').trim();
+  if (!page) return next();
+  const candidate = path.join(__dirname, `${page}.html`);
+  return res.sendFile(candidate, (err) => {
+    if (err) return next();
+  });
+});
+
 // Simple JSON proxy to avoid CORS issues
 app.get('/api/proxy', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

@@ -141,6 +141,7 @@
             <span class="refresh-icon">🔄</span>
             <span class="refresh-text">Refresh</span>
           </button>
+          <a href="/card" class="email-sync-btn-small" aria-label="Open history" title="Reward/Win change history">🗂 History</a>
           <button onclick="openEmailModal()" class="email-sync-btn-small">
             💾 Saved
           </button>
@@ -893,6 +894,26 @@
     
     // Peer data management
     const savedPeersKey = 'gensyn_saved_peers';
+    const changesHistoryKey = 'gensyn_changes_history';
+
+    function _loadHistory() {
+      try { return JSON.parse(localStorage.getItem(changesHistoryKey) || '[]'); } catch (e) { return []; }
+    }
+
+    function _saveHistory(entries) {
+      try { localStorage.setItem(changesHistoryKey, JSON.stringify(entries)); } catch (e) {}
+    }
+
+    function addHistoryEntry(entry) {
+      try {
+        if (!entry) return;
+        const hasDelta = (Number(entry.rewardDelta||0) !== 0) || (Number(entry.winDelta||0) !== 0);
+        if (!hasDelta) return;
+        const list = _loadHistory();
+        list.push({ ...entry, timestamp: Date.now() });
+        _saveHistory(list.slice(-2000)); // cap to last 2000 entries
+      } catch (e) { /* noop */ }
+    }
     
     function savePeerData(peerData) {
       // Validate peer data before saving
@@ -909,6 +930,17 @@
         const oldData = savedPeers[peerData.peerId];
         const rewardChange = peerData.reward - oldData.reward;
         const scoreChange = peerData.score - oldData.score;
+        if (rewardChange !== 0 || scoreChange !== 0) {
+          addHistoryEntry({
+            peerId: peerData.peerId,
+            peerName: peerData.peerName,
+            eoa: peerData.eoa,
+            rewardDelta: rewardChange,
+            winDelta: scoreChange,
+            rewardAfter: peerData.reward,
+            scoreAfter: peerData.score
+          });
+        }
         
         savedPeers[peerData.peerId] = {
           ...peerData,
@@ -1224,6 +1256,17 @@
             // Calculate changes
             const rewardChange = newReward - peer.reward;
             const scoreChange = newScore - peer.score;
+            if (rewardChange !== 0 || scoreChange !== 0) {
+              addHistoryEntry({
+                peerId: peer.peerId,
+                peerName: peer.peerName,
+                eoa: peer.eoa,
+                rewardDelta: rewardChange,
+                winDelta: scoreChange,
+                rewardAfter: newReward,
+                scoreAfter: newScore
+              });
+            }
             
             // Update peer data
             updatedPeers[peerId] = {
@@ -1481,6 +1524,17 @@
             // Calculate changes
             const rewardChange = newReward - peer.reward;
             const scoreChange = newScore - peer.score;
+            if (rewardChange !== 0 || scoreChange !== 0) {
+              addHistoryEntry({
+                peerId: peer.peerId,
+                peerName: peer.peerName,
+                eoa: eoaToUse || peer.eoa,
+                rewardDelta: rewardChange,
+                winDelta: scoreChange,
+                rewardAfter: newReward,
+                scoreAfter: newScore
+              });
+            }
             
             // Update peer data
             updatedPeers[peerId] = {

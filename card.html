@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gensyn Tracker — Change History</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+  <style>
+    #fx-shapes { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .fx-shape { position: absolute; width: 10vmin; height: 10vmin; opacity: 0.08; border-radius: 20%; filter: blur(0.5px); }
+    .fx-shape.s1 { background: radial-gradient(circle at 30% 30%, #7c3aed, transparent 60%), #7c3aed; }
+    .fx-shape.s2 { background: radial-gradient(circle at 70% 70%, #22d3ee, transparent 60%), #22d3ee; }
+    .fx-shape.s3 { background: radial-gradient(circle at 50% 50%, #34d399, transparent 60%), #34d399; }
+    .fx-shape.s4 { background: radial-gradient(circle at 50% 50%, #f472b6, transparent 60%), #f472b6; }
+    header, main, footer { position: relative; z-index: 1; }
+    .history-controls { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
+    .chip { padding: 0.35rem 0.7rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: inherit; font-size: 0.8rem; cursor: pointer; }
+    .chip.active { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border-color: transparent; }
+    .history-list { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .history-item { display:grid; grid-template-columns: 1fr auto; gap:0.6rem; align-items:center; padding: 0.9rem 1rem; border-radius: 12px; border:1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
+    .history-item .meta { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+    .pill { padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.7rem; border:1px solid rgba(255,255,255,0.2); backdrop-filter: blur(6px); }
+    .pill.pos { color: #00ff88; background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.35); }
+    .pill.neg { color: #ff4757; background: rgba(255,71,87,0.15); border-color: rgba(255,71,87,0.35); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 0.85rem; }
+    .subtle { opacity:0.8; font-size:0.9rem; }
+    .controls-right { margin-left:auto; display:flex; gap:0.5rem; }
+    .btn-link { background: rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color: inherit; text-decoration:none; padding:0.5rem 0.9rem; border-radius:10px; display:inline-flex; align-items:center; gap:0.45rem; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #f97316); color:#fff; border:none; }
+    .empty { text-align:center; padding: 2rem 0.5rem; opacity:0.8; }
+  </style>
+</head>
+<body>
+  <div id="fx-shapes" aria-hidden="true"></div>
+  <header>
+    <h1>Change History</h1>
+    <button id="theme-toggle" aria-label="Toggle dark/light mode">🌙</button>
+  </header>
+
+  <main>
+    <section id="history">
+      <div class="saved-peers-header" style="margin-bottom:1rem;">
+        <h2>📈 Reward & Win History</h2>
+        <div class="controls-right">
+          <a href="/" class="btn-link">← Home</a>
+          <button id="clear-history" class="email-sync-btn-small btn-danger">Clear History</button>
+        </div>
+      </div>
+      <div class="center-summary" style="justify-content:flex-start; gap:1rem;">
+        <div><span class="summary-icon">🧮</span> <span class="summary-value" id="entries-count">0</span> entries</div>
+        <div><span class="summary-icon">🎁</span> Δ <span class="summary-value" id="total-reward-delta">0</span></div>
+        <div><span class="summary-icon">🏆</span> Δ <span class="summary-value" id="total-win-delta">0</span></div>
+      </div>
+      <div class="history-controls" style="margin-top:0.5rem;">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="reward">Reward only</button>
+        <button class="chip" data-filter="win">Wins only</button>
+        <button class="chip" data-filter="positive">Gains</button>
+        <button class="chip" data-filter="negative">Losses</button>
+      </div>
+      <div id="history-content" class="history-list"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p style="text-align:center">&copy; 2024 Gensyn Tracker</p>
+  </footer>
+
+  <script>
+    // Dark mode default
+    document.body.classList.add('dark-mode');
+    const themeToggle = document.getElementById('theme-toggle');
+    themeToggle.textContent = '☀️';
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      themeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    // Floating shapes (minimal)
+    (function initFX(){
+      if (!window.anime) return;
+      const container = document.getElementById('fx-shapes');
+      if (!container) return;
+      const variants = ['s1','s2','s3','s4'];
+      for (let i=0;i<10;i++){
+        const el = document.createElement('div');
+        el.className = 'fx-shape ' + variants[i % variants.length];
+        el.style.left = Math.random()*100 + 'vw';
+        el.style.top = Math.random()*100 + 'vh';
+        container.appendChild(el);
+        anime({ targets: el, translateX: () => anime.random(-150,150), translateY: () => anime.random(-120,120), rotate: () => anime.random(-180,180), direction:'alternate', duration: () => anime.random(6000,12000), delay: anime.stagger(200,{start:i*80}), easing:'easeInOutSine', loop:true });
+      }
+    })();
+
+    const CHANGES_KEY = 'gensyn_changes_history';
+    function loadHistory(){
+      try { return JSON.parse(localStorage.getItem(CHANGES_KEY) || '[]'); } catch(_) { return []; }
+    }
+    function saveHistory(list){ localStorage.setItem(CHANGES_KEY, JSON.stringify(list)); }
+
+    function renderHistory(filter){
+      const content = document.getElementById('history-content');
+      const entries = loadHistory();
+      const filtered = entries.filter((e) => {
+        if (!filter || filter==='all') return true;
+        if (filter==='reward') return (e.rewardDelta||0) !== 0;
+        if (filter==='win') return (e.winDelta||0) !== 0;
+        if (filter==='positive') return (e.rewardDelta||0) > 0 || (e.winDelta||0) > 0;
+        if (filter==='negative') return (e.rewardDelta||0) < 0 || (e.winDelta||0) < 0;
+        return true;
+      });
+
+      // Summary
+      const totals = filtered.reduce((acc, e)=>{
+        acc.reward += Number(e.rewardDelta||0); acc.win += Number(e.winDelta||0); return acc;
+      }, { reward:0, win:0 });
+      document.getElementById('entries-count').textContent = filtered.length.toLocaleString();
+      document.getElementById('total-reward-delta').textContent = totals.reward.toLocaleString();
+      document.getElementById('total-win-delta').textContent = totals.win.toLocaleString();
+
+      if (filtered.length === 0){
+        content.innerHTML = '<div class="empty">No history yet. Changes will appear here after rewards/wins update.</div>';
+        return;
+      }
+
+      // Newest first
+      filtered.sort((a,b)=> (b.timestamp||0) - (a.timestamp||0));
+      content.innerHTML = filtered.map((e)=>{
+        const t = e.timestamp ? new Date(e.timestamp).toLocaleString() : '';
+        const r = Number(e.rewardDelta||0); const w = Number(e.winDelta||0);
+        const rClass = r===0 ? '' : (r>0 ? 'pill pos' : 'pill neg');
+        const wClass = w===0 ? '' : (w>0 ? 'pill pos' : 'pill neg');
+        const rPill = r !== 0 ? `<span class="${rClass}">🎁 ${r>0?'+':''}${r}</span>` : '';
+        const wPill = w !== 0 ? `<span class="${wClass}">🏆 ${w>0?'+':''}${w}</span>` : '';
+        const after = (e.rewardAfter!=null || e.scoreAfter!=null) ? `<span class="mono subtle">→ ${e.rewardAfter?.toLocaleString?.()||e.rewardAfter||'?'} / ${e.scoreAfter?.toLocaleString?.()||e.scoreAfter||'?'}</span>` : '';
+        const eoa = e.eoa ? `<span class="mono subtle" title="EOA">${(e.eoa.length>10? e.eoa.slice(0,10)+'…':e.eoa)}</span>` : '';
+        return `
+          <div class="history-item">
+            <div class="meta">
+              <span class="saved-peer-avatar" style="width:28px;height:28px;font-size:0.9rem;">${(e.peerName||'?').charAt(0).toUpperCase()}</span>
+              <strong>${e.peerName||'Unknown peer'}</strong>
+              <span class="mono subtle" title="Peer ID">${(e.peerId||'').slice(0,10)}${(e.peerId||'').length>10?'…':''}</span>
+              ${eoa}
+              ${after}
+            </div>
+            <div style="display:flex; gap:0.4rem; align-items:center; justify-content:flex-end;">
+              ${rPill}
+              ${wPill}
+              <span class="mono subtle" title="When">${t}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // Filters
+    let activeFilter = 'all';
+    document.querySelectorAll('.chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        renderHistory(activeFilter);
+      });
+    });
+
+    // Clear history
+    document.getElementById('clear-history').addEventListener('click', ()=>{
+      if (!confirm('Clear all history entries?')) return;
+      saveHistory([]);
+      renderHistory(activeFilter);
+    });
+
+    // Initial render
+    renderHistory(activeFilter);
+  </script>
+</body>
+</html>
+
+

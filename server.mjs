@@ -87,12 +87,26 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Static file serving
+  // Static file serving with .html fallback (supports /card → /card.html)
   let pathname = parsedUrl.pathname;
   if (pathname === '/') pathname = '/index.html';
-  const filePath = safeJoin(publicDir, pathname);
+  let filePath = safeJoin(publicDir, pathname);
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
+      // If no extension, try .html fallback
+      const hasExt = path.extname(filePath);
+      if (!hasExt) {
+        const htmlPath = filePath + '.html';
+        return fs.stat(htmlPath, (err2, stats2) => {
+          if (!err2 && stats2.isFile()) {
+            const type = mimeTypes['.html'];
+            res.writeHead(200, { 'Content-Type': type });
+            return fs.createReadStream(htmlPath).pipe(res);
+          }
+          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('Not Found');
+        });
+      }
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Not Found');
       return;
